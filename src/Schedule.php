@@ -18,14 +18,26 @@ class Schedule {
     public int $ack_delay; //seconds
 
     public function toJSON(): array {
-        return get_object_vars($this);
+        $data = get_object_vars($this);
+        foreach($data AS $key => $value) {
+            if(is_a($value, 'DateTime')) {
+                $data[$key] = $value->format(DateTime::ATOM);
+            }
+        }
+        return $data;
     }
 
     public static function fromJSON(string $data): Schedule {
         $json = json_decode($data, true);
         $sch = new Schedule();
         foreach ($json AS $key => $value) {
-            $sch->{$key} = $value;
+            $rp = new ReflectionProperty('\Ergon\Schedule', $key);
+            if ($rp->getType()->getName() == 'DateTime') {
+                $sch->{$key} = new DateTime($value);
+            } else {
+                $sch->{$key} = $value;
+            }
+
         }
         return $sch;
     }

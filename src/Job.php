@@ -2,6 +2,7 @@
 namespace Ergon;
 
 use DateTime;
+use ReflectionProperty;
 
 class Job {
     public ?string $id;
@@ -26,14 +27,26 @@ class Job {
     public ?DateTime $expires_at;
 
     public function toJSON(): array {
-        return get_object_vars($this);
+        $data = get_object_vars($this);
+        foreach($data AS $key => $value) {
+            if(is_a($value, 'DateTime')) {
+                $data[$key] = $value->format(DateTime::ATOM);
+            }
+        }
+        return $data;
     }
 
     public static function fromJSON(string $data): Job {
         $json = json_decode($data, true);
         $job = new Job();
         foreach ($json AS $key => $value) {
-            $job->{$key} = $value;
+            $rp = new ReflectionProperty('\Ergon\Job', $key);
+            if ($rp->getType()->getName() == 'DateTime') {
+                $job->{$key} = new DateTime($value);
+            } else {
+                $job->{$key} = $value;
+            }
+
         }
         return $job;
     }
