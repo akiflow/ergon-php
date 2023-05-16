@@ -8,7 +8,7 @@ class Job {
     public string $queue_id;
     public ?string $ordering_key;
     public string $subject;
-    public string $status;
+    public ?string $status;
     public ?DateTime $enqueued_at;
     public DateTime $run_at;
     public ?DateTime $pulled_at;
