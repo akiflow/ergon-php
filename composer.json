@@ -1,0 +1,19 @@
+{
+    "name": "akiflow/ergon-php",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "7.x",
+        "ext-json": "*"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ergon\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Akiflow Inc."
+        }
+    ]
+}
