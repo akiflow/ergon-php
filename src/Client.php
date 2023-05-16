@@ -22,11 +22,12 @@ class Client {
             $component = rtrim($component, '/');
         });
         $url = implode('/', $array);
+        printf($url);
         $this->baseHost = $baseHost;
         $this->queueID = $queueID;
         $this->token = $token;
         $this->cli = new \GuzzleHttp\Client([
-            'base_uri' => $url,
+            'base_uri' => $url . '/',
             'timeout' => 11.0,
             'headers' => [
                 'Authorization' => $token,
@@ -38,7 +39,7 @@ class Client {
      * @throws \Exception
      */
     function pull() : ?Job {
-        $resp = $this->cli->get('/jobs/next');
+        $resp = $this->cli->get('jobs/next');
         if ($resp->getStatusCode() == 204) {
             return null;
         }
@@ -49,7 +50,7 @@ class Client {
      * @throws \Exception
      */
     function pullWait(int $wait) : ?Job {
-        $resp = $this->cli->get('/jobs/wait', [
+        $resp = $this->cli->get('jobs/wait', [
             'timeout' => ($wait+1),
             'headers' => [
                 'Ergon-Wait' => $wait,
@@ -65,7 +66,7 @@ class Client {
      * @throws \Exception
      */
     function push(Job $job) {
-        $this->cli->post('/jobs', [
+        $this->cli->post('jobs', [
             'json' => $job->toJSON()
         ]);
     }
@@ -102,7 +103,7 @@ class Client {
      * @throws \Exception
      */
     function ack(Job $job) {
-        $this->cli->put('/jobs/'.$job->id.'/ack', [
+        $this->cli->put('jobs/'.$job->id.'/ack', [
             'json' => $job->toJSON()
         ]);
     }
@@ -111,7 +112,7 @@ class Client {
      * @throws \Exception
      */
     function nack(Job $job) {
-        $this->cli->put('/jobs/'.$job->id.'/nack', [
+        $this->cli->put('jobs/'.$job->id.'/nack', [
             'json' => $job->toJSON()
         ]);
     }
@@ -121,7 +122,7 @@ class Client {
      */
     function nackWithDelay(Job $job, DateTime $when) {
         $job->retry_time = $when;
-        $this->cli->put('/jobs/'.$job->id.'/nack', [
+        $this->cli->put('jobs/'.$job->id.'/nack', [
             'json' => $job->toJSON()
         ]);
     }
@@ -130,7 +131,7 @@ class Client {
      * @throws \Exception
      */
     function term(Job $job) {
-        $this->cli->put('/jobs/'.$job->id.'/term', [
+        $this->cli->put('jobs/'.$job->id.'/term', [
             'json' => $job->toJSON()
         ]);
     }
@@ -139,14 +140,14 @@ class Client {
      * @throws \Exception
      */
     function deleteJobs(string $key) {
-        $this->cli->delete('/jobs/'.$key);
+        $this->cli->delete('jobs/'.$key);
     }
 
     /**
      * @throws \Exception
      */
     function schedule(Schedule $sch) {
-        $this->cli->post('/schedules', [
+        $this->cli->post('schedules', [
             'json' => $sch->toJSON()
         ]);
     }
