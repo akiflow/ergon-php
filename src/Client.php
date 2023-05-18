@@ -3,6 +3,8 @@ namespace Ergon;
 
 use Cassandra\Date;
 use DateTime;
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 
 class Client {
     private \GuzzleHttp\Client $cli;
@@ -11,11 +13,11 @@ class Client {
     private string $token;
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(string $baseHost, string $queueID, string $token) {
         if (filter_var($baseHost, FILTER_VALIDATE_URL) === FALSE) {
-            throw new \Exception('INVALID_URL');
+            throw new Exception('INVALID_URL');
         }
         $array = array($baseHost, 'queues', $queueID);
         array_walk_recursive($array, function(&$component) {
@@ -36,45 +38,63 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @return Job[]
+     * @throws Exception
      */
-    function pull() : ?Job {
-        $resp = $this->cli->get('jobs/next');
+    function pull(int $count=1): array {
+        $headers = [
+            "Ergon-Batch-Size" => $count
+        ];
+        $resp = $this->cli->get('jobs/next',
+        [
+            'headers' => $headers
+        ]);
         if ($resp->getStatusCode() == 204) {
-            return null;
+            return [];
         }
         return Job::fromJSON($resp->getBody());
     }
 
     /**
-     * @throws \Exception
+     * @return Job[]
+     * @throws Exception
      */
-    function pullWait(int $wait) : ?Job {
+    function pullWait(int $wait, int $count=1) : array {
         $resp = $this->cli->get('jobs/wait', [
             'timeout' => ($wait+1),
             'headers' => [
                 'Ergon-Wait' => $wait,
+                'Ergon-Batch-Size' => $count
             ]
         ]);
         if ($resp->getStatusCode() == 204) {
-            return null;
+            return [];
         }
         return Job::fromJSON($resp->getBody());
     }
 
     /**
-     * @throws \Exception
+     * @param Job[] $job
+     * @throws Exception|GuzzleException
      */
-    function push(Job $job) {
+    function push(array $jobs) {
+        $jsons = array();
+        foreach($jobs AS $job) {
+            $jsons[] = $job->toJSON();
+        }
         $this->cli->post('jobs', [
-            'json' => $job->toJSON()
+            'json' =>  $jsons
         ]);
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function simplePush(?string $key, string $subject, DateTime $runAt, array $payload) {
+        $this->push([$this->generateJob($key,$subject,$runAt,$payload)]);
+    }
+
+    function generateJob(?string $key, string $subject, DateTime $runAt, array $payload): Job {
         $job = new Job();
         $job->id = null;
         $job->queue_id = $this->queueID;
@@ -96,11 +116,11 @@ class Client {
         $job->retry_time = null;
         $job->ack_delay = 120;
         $job->expires_at = null;
-        $this->push($job);
+        return $job;
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function ack(Job $job) {
         $this->cli->put('jobs/'.$job->id.'/ack', [
@@ -109,7 +129,7 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function nack(Job $job) {
         $this->cli->put('jobs/'.$job->id.'/nack', [
@@ -118,7 +138,7 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function nackWithDelay(Job $job, DateTime $when) {
         $job->retry_time = $when;
@@ -128,7 +148,7 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function term(Job $job) {
         $this->cli->put('jobs/'.$job->id.'/term', [
@@ -137,14 +157,14 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function deleteJobs(string $key) {
         $this->cli->delete('jobs/'.$key);
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function schedule(Schedule $sch) {
         $this->cli->post('schedules', [
@@ -153,7 +173,7 @@ class Client {
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     function simpleSchedule(?string $key, string $subject, int $minutes, array $payload) {
         $sch = new Schedule();

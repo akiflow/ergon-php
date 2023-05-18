@@ -2,6 +2,9 @@
 namespace Ergon;
 
 use DateTime;
+use DateTimeInterface;
+use Exception;
+use ReflectionException;
 use ReflectionProperty;
 
 class Job {
@@ -30,24 +33,32 @@ class Job {
         $data = get_object_vars($this);
         foreach($data AS $key => $value) {
             if(is_a($value, 'DateTime')) {
-                $data[$key] = $value->format(DateTime::ATOM);
+                $data[$key] = $value->format(DateTimeInterface::ATOM);
             }
         }
         return $data;
     }
 
-    public static function fromJSON(string $data): Job {
-        $json = json_decode($data, true);
-        $job = new Job();
-        foreach ($json AS $key => $value) {
-            $rp = new ReflectionProperty('\Ergon\Job', $key);
-            if ($rp->getType()->getName() == 'DateTime') {
-                $job->{$key} = new DateTime($value);
-            } else {
-                $job->{$key} = $value;
-            }
+    /**
+     * @return Job[]
+     * @throws ReflectionException | Exception
+     */
+    public static function fromJSON(string $data): array {
+        $jsons = json_decode($data, true);
+        $jobs = array();
 
+        foreach($jsons AS $json) {
+            $job = new Job();
+            foreach ($json as $key => $value) {
+                $rp = new ReflectionProperty('\Ergon\Job', $key);
+                if ($rp->getType()->getName() == 'DateTime') {
+                    $job->{$key} = new DateTime($value);
+                } else {
+                    $job->{$key} = $value;
+                }
+            }
+            $jobs[] = $job;
         }
-        return $job;
+        return $jobs;
     }
 }
