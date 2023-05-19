@@ -74,7 +74,7 @@ class Client {
     }
 
     /**
-     * @param Job[] $job
+     * @param Job[] $jobs
      * @throws Exception|GuzzleException
      */
     function push(array $jobs) {
@@ -95,28 +95,7 @@ class Client {
     }
 
     function generateJob(?string $key, string $subject, DateTime $runAt, array $payload): Job {
-        $job = new Job();
-        $job->id = null;
-        $job->queue_id = $this->queueID;
-        $job->ordering_key = $key;
-        $job->subject = $subject;
-        $job->status = null;
-        $job->enqueued_at = null;
-        $job->run_at = $runAt;
-        $job->pulled_at = null;
-        $job->last_retry_at = null;
-        $job->acked_at = null;
-        $job->termed_at = null;
-        $job->failed_at = null;
-        $job->retry = 0;
-        $job->max_retries = 50;
-        $job->payload = $payload;
-        $job->error = null;
-        $job->ack_key = null;
-        $job->retry_time = null;
-        $job->ack_delay = 120;
-        $job->expires_at = null;
-        return $job;
+        return new Job($this->queueID, $key, $subject, $runAt, $payload);
     }
 
     /**

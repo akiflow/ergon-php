@@ -29,6 +29,29 @@ class Job {
     public int $ack_delay; //seconds
     public ?DateTime $expires_at;
 
+    public function __construct(string $queueID, ?string $key, string $subject, DateTime $runAt, array $payload) {
+            $this->id = null;
+            $this->queue_id = $queueID;
+            $this->ordering_key = $key;
+            $this->subject = $subject;
+            $this->status = null;
+            $this->enqueued_at = null;
+            $this->run_at = $runAt;
+            $this->pulled_at = null;
+            $this->last_retry_at = null;
+            $this->acked_at = null;
+            $this->termed_at = null;
+            $this->failed_at = null;
+            $this->retry = 0;
+            $this->max_retries = 50;
+            $this->payload = $payload;
+            $this->error = null;
+            $this->ack_key = null;
+            $this->retry_time = null;
+            $this->ack_delay = 120;
+            $this->expires_at = null;
+    }
+
     public function toJSON(): array {
         $data = get_object_vars($this);
         foreach($data AS $key => $value) {
