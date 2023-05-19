@@ -82,7 +82,7 @@ class Client {
         foreach($jobs AS $job) {
             $jsons[] = $job->toJSON();
         }
-        $this->cli->post('jobs', [
+        $this->cli->post('jobs/batch', [
             'json' =>  $jsons
         ]);
     }
