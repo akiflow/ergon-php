@@ -24,7 +24,6 @@ class Client {
             $component = rtrim($component, '/');
         });
         $url = implode('/', $array);
-        printf($url);
         $this->baseHost = $baseHost;
         $this->queueID = $queueID;
         $this->token = $token;
