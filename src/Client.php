@@ -144,16 +144,17 @@ class Client {
     /**
      * @throws Exception
      */
-    function schedule(Schedule $sch) {
-        $this->cli->post('schedules', [
+    function schedule(Schedule $sch): ?Schedule {
+        $resp = $this->cli->post('schedules', [
             'json' => $sch->toJSON()
         ]);
+        return Schedule::fromJSON($resp->getBody());
     }
 
     /**
      * @throws Exception
      */
-    function simpleSchedule(?string $key, string $subject, int $minutes, array $payload) {
+    function simpleSchedule(?string $key, string $subject, int $minutes, array $payload): ?Schedule {
         $sch = new Schedule();
         $sch->id = null;
         $sch->queue_id = $this->queueID;
@@ -167,6 +168,13 @@ class Client {
         $sch->max_retries = 50;
         $sch->payload = $payload;
         $sch->ack_delay = 120;
-        $this->schedule($sch);
+        return $this->schedule($sch);
+    }
+
+    /**
+     * @throws GuzzleException
+     */
+    function triggerSchedule(string $id) {
+        $this->cli->post('schedules/'.$id.'/trigger');
     }
 }
