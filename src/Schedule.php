@@ -2,6 +2,8 @@
 namespace Ergon;
 
 use DateTime;
+use ReflectionException;
+use ReflectionProperty;
 
 class Schedule {
     public ?string $id;
@@ -27,6 +29,10 @@ class Schedule {
         return $data;
     }
 
+    /**
+     * @return Schedule
+     * @throws ReflectionException
+     */
     public static function fromJSON(string $data): Schedule {
         $json = json_decode($data, true);
         $sch = new Schedule();
