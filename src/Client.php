@@ -177,4 +177,11 @@ class Client {
     function triggerSchedule(string $id) {
         $this->cli->post('schedules/'.$id.'/trigger');
     }
+
+    /**
+     * @throws GuzzleException
+     */
+    function deleteSchedule(string $id) {
+        $this->cli->delete('schedules/'.$id);
+    }
 }
