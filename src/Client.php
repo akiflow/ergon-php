@@ -184,4 +184,12 @@ class Client {
     function deleteSchedule(string $id) {
         $this->cli->delete('schedules/'.$id);
     }
+
+    /**
+     * @throws GuzzleException
+     */
+    function ping(): bool {
+        $resp = $this->cli->get($this->baseHost . '/ergon/system/healthz', ['timeout' => 1, 'http_errors' => false]);
+        return $resp->getStatusCode() === 200;
+    }
 }
