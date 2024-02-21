@@ -137,8 +137,15 @@ class Client {
     /**
      * @throws Exception
      */
-    function deleteJobs(string $key) {
-        $this->cli->delete('jobs/'.$key);
+    function deleteJob(string $id) {
+        $this->cli->delete('jobs/'.$id);
+    }
+
+    /**
+     * @throws Exception
+     */
+    function deleteJobsWithKey(string $key) {
+        $this->cli->delete('jobs/keys/'.$key);
     }
 
     /**
