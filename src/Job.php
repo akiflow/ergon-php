@@ -68,7 +68,7 @@ class Job {
      */
     public static function fromJSON(string $data): Job {
         $json = json_decode($data, true);
-        $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], $json['run_at'], $json['payload']);
+        $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], new DateTime($json['run_at']), $json['payload']);
         foreach ($json AS $key => $value) {
             $rp = new ReflectionProperty('\Ergon\Job', $key);
             if ($rp->getType()->getName() == 'DateTime') {
@@ -90,7 +90,7 @@ class Job {
         $jobs = array();
 
         foreach($jsons AS $json) {
-            $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], $json['run_at'], $json['payload']);
+            $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], new DateTime($json['run_at']), $json['payload']);
             foreach ($json as $key => $value) {
                 $rp = new ReflectionProperty('\Ergon\Job', $key);
                 if ($rp->getType()->getName() == 'DateTime') {
