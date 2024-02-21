@@ -66,7 +66,10 @@ class Job {
      * @return Schedule
      * @throws ReflectionException
      */
-    public static function fromJSON(string $data): Job {
+    public static function fromJSON(string $data): ?Job {
+        if ($data == 'null') {
+            return null;
+        }
         $json = json_decode($data, true);
         $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], new DateTime($json['run_at']), $json['payload']);
         foreach ($json AS $key => $value) {
