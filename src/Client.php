@@ -51,7 +51,7 @@ class Client {
         if ($resp->getStatusCode() == 204) {
             return [];
         }
-        return Job::fromJSON($resp->getBody());
+        return Job::fromJSONArray($resp->getBody());
     }
 
     /**
@@ -69,7 +69,7 @@ class Client {
         if ($resp->getStatusCode() == 204) {
             return [];
         }
-        return Job::fromJSON($resp->getBody());
+        return Job::fromJSONArray($resp->getBody());
     }
 
     /**

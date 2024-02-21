@@ -63,10 +63,29 @@ class Job {
     }
 
     /**
+     * @return Schedule
+     * @throws ReflectionException
+     */
+    public static function fromJSON(string $data): Job {
+        $json = json_decode($data, true);
+        $job = new Job();
+        foreach ($json AS $key => $value) {
+            $rp = new ReflectionProperty('\Ergon\Job', $key);
+            if ($rp->getType()->getName() == 'DateTime') {
+                $job->{$key} = new DateTime($value);
+            } else {
+                $job->{$key} = $value;
+            }
+
+        }
+        return $job;
+    }
+
+    /**
      * @return Job[]
      * @throws ReflectionException | Exception
      */
-    public static function fromJSON(string $data): array {
+    public static function fromJSONArray(string $data): array {
         $jsons = json_decode($data, true);
         $jobs = array();
 
