@@ -76,21 +76,23 @@ class Client {
      * @param Job[] $jobs
      * @throws Exception|GuzzleException
      */
-    function push(array $jobs) {
+    function push(array $jobs): Job {
         $jsons = array();
         foreach($jobs AS $job) {
             $jsons[] = $job->toJSON();
         }
-        $this->cli->post('jobs/batch', [
+        $resp = $this->cli->post('jobs/batch', [
             'json' =>  $jsons
         ]);
+        return Job::fromJSON($resp->getBody());
     }
 
     /**
      * @throws Exception
      */
-    function simplePush(?string $key, string $subject, DateTime $runAt, array $payload) {
-        $this->push([$this->generateJob($key,$subject,$runAt,$payload)]);
+    function simplePush(?string $key, string $subject, DateTime $runAt, array $payload): Job
+    {
+        return $this->push([$this->generateJob($key,$subject,$runAt,$payload)]);
     }
 
     function generateJob(?string $key, string $subject, DateTime $runAt, array $payload): Job {
