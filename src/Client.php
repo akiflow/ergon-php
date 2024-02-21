@@ -91,7 +91,9 @@ class Client {
      */
     function simplePush(?string $key, string $subject, DateTime $runAt, array $payload): Job
     {
-        $resp = $this->cli->post('jobs', $this->generateJob($key,$subject,$runAt,$payload)->toJSON());
+        $resp = $this->cli->post('jobs', [
+            "json" => $this->generateJob($key,$subject,$runAt,$payload)->toJSON()
+        ]);
         return Job::fromJSON($resp->getBody());
     }
 
