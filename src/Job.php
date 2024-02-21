@@ -71,6 +71,9 @@ class Job {
             return null;
         }
         $json = json_decode($data, true);
+        if(!$json) {
+            return null;
+        }
         $job = new Job($json['queue_id'], $json['ordering_key'] ?? null, $json['subject'], new DateTime($json['run_at']), $json['payload']);
         foreach ($json AS $key => $value) {
             $rp = new ReflectionProperty('\Ergon\Job', $key);
@@ -90,6 +93,9 @@ class Job {
      */
     public static function fromJSONArray(string $data): array {
         $jsons = json_decode($data, true);
+        if (!$jsons) {
+            return [];
+        }
         $jobs = array();
 
         foreach($jsons AS $json) {
