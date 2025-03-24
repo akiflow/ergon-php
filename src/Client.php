@@ -12,6 +12,7 @@ class Client {
     private string $queueID;
     private string $token;
 
+    /* adsasd */
     /**
      * @throws Exception
      */
