@@ -43,7 +43,7 @@ class Job {
             $this->termed_at = null;
             $this->failed_at = null;
             $this->retry = 0;
-            $this->max_retries = 50;
+            $this->max_retries = DefaultMaxRetries;
             $this->payload = $payload;
             $this->error = null;
             $this->ack_key = null;

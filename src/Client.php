@@ -6,6 +6,8 @@ use DateTime;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 
+const DefaultMaxRetries = 10;
+
 class Client {
     private \GuzzleHttp\Client $cli;
     private string $baseHost;
@@ -176,7 +178,7 @@ class Client {
         $sch->next_enqueue_at = null;
         $sch->max_enqueues = 0;
         $sch->total_enqueues = 0;
-        $sch->max_retries = 50;
+        $sch->max_retries = DefaultMaxRetries;
         $sch->payload = $payload;
         $sch->ack_delay = 120;
         return $this->schedule($sch);
