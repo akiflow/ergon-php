@@ -12,7 +12,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 const DefaultScheduleMaxRetries = 10;
-const DefaultMaxClientRetries = 3;
+const DefaultClientMaxRetries = 3;
 const DefaultRetryDelay = 100; // milliseconds
 
 class Client {
@@ -30,7 +30,7 @@ class Client {
         string $baseHost,
         string $queueID,
         string $token,
-        int $maxRetries = DefaultMaxClientRetries,
+        int $maxRetries = DefaultClientMaxRetries,
         int $retryDelay = DefaultRetryDelay  // in milliseconds
     ) {
         if (filter_var($baseHost, FILTER_VALIDATE_URL) === FALSE) {
