@@ -53,7 +53,7 @@ class Client {
 
         $this->cli = new \GuzzleHttp\Client([
             'base_uri' => $url . '/',
-            'timeout' => 1,
+            'timeout' => 3,
             'headers' => [
                 'Authorization' => $token,
             ],
