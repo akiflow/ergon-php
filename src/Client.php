@@ -1,23 +1,38 @@
 <?php
 namespace Ergon;
 
-use Cassandra\Date;
 use DateTime;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
-const DefaultMaxRetries = 10;
+const DefaultScheduleMaxRetries = 10;
+const DefaultMaxClientRetries = 3;
+const DefaultRetryDelay = 100; // milliseconds
 
 class Client {
     private \GuzzleHttp\Client $cli;
     private string $baseHost;
     private string $queueID;
     private string $token;
+    private int $maxRetries;
+    private int $retryDelay;
 
     /**
      * @throws Exception
      */
-    public function __construct(string $baseHost, string $queueID, string $token) {
+    public function __construct(
+        string $baseHost,
+        string $queueID,
+        string $token,
+        int $maxRetries = DefaultMaxClientRetries,
+        int $retryDelay = DefaultRetryDelay  // in milliseconds
+    ) {
         if (filter_var($baseHost, FILTER_VALIDATE_URL) === FALSE) {
             throw new Exception('INVALID_URL');
         }
@@ -29,13 +44,66 @@ class Client {
         $this->baseHost = $baseHost;
         $this->queueID = $queueID;
         $this->token = $token;
+        $this->maxRetries = $maxRetries;
+        $this->retryDelay = $retryDelay;
+
+        // Create a handler stack with the retry middleware
+        $handlerStack = HandlerStack::create();
+        $handlerStack->push($this->createRetryMiddleware());
+
         $this->cli = new \GuzzleHttp\Client([
             'base_uri' => $url . '/',
-            'timeout' => 11.0,
+            'timeout' => 1,
             'headers' => [
                 'Authorization' => $token,
-            ]
+            ],
+            'handler' => $handlerStack
         ]);
+    }
+
+    /**
+     * Creates a retry middleware with exponential backoff
+     *
+     * @return callable
+     */
+    private function createRetryMiddleware(): callable
+    {
+        return Middleware::retry(
+            // Retry condition
+            function (
+                $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?RequestException $exception = null
+            ) {
+                // Limit the number of retries
+                if ($retries >= $this->maxRetries) {
+                    return false;
+                }
+
+                // Retry on connection exceptions
+                if ($exception instanceof ConnectException) {
+                    return true;
+                }
+
+                // Retry on server errors (5xx)
+                if ($response && $response->getStatusCode() >= 500) {
+                    return true;
+                }
+
+                // Retry on rate limiting (429)
+                if ($response && $response->getStatusCode() === 429) {
+                    return true;
+                }
+
+                return false;
+            },
+            // Backoff strategy with exponential delay
+            function ($retries) {
+                // Calculate exponential backoff: baseDelay * 2^retries + small random jitter
+                return $this->retryDelay * (2 ** $retries) + random_int(0, 100);
+            }
+        );
     }
 
     /**
@@ -178,7 +246,7 @@ class Client {
         $sch->next_enqueue_at = null;
         $sch->max_enqueues = 0;
         $sch->total_enqueues = 0;
-        $sch->max_retries = DefaultMaxRetries;
+        $sch->max_retries = DefaultScheduleMaxRetries;
         $sch->payload = $payload;
         $sch->ack_delay = 120;
         return $this->schedule($sch);
