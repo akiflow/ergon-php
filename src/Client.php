@@ -74,7 +74,7 @@ class Client {
                 $retries,
                 RequestInterface $request,
                 ?ResponseInterface $response = null,
-                ?RequestException $exception = null
+                RequestException|ConnectException|null $exception = null
             ) {
                 // Limit the number of retries
                 if ($retries >= $this->maxRetries) {
