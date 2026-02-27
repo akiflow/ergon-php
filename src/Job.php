@@ -56,7 +56,10 @@ class Job {
         $data = get_object_vars($this);
         foreach($data AS $key => $value) {
             if(is_a($value, 'DateTime')) {
-                $data[$key] = $value->format(DateTimeInterface::ATOM);
+                // $data[$key] = $value->format(DateTimeInterface::ATOM);
+                // we use to use DateTimeInterface::ATOM, but it has the second precision (and not millisecond).
+                // This could have lead to two jobs being pushed in the same second and then being processed in opposite order. (ergon sorts by run_at)
+                $data[$key] = $value->format('Y-m-d\TH:i:s.vP');
             }
         }
         return $data;
