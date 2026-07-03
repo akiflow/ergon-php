@@ -159,16 +159,18 @@ class Client {
     /**
      * @throws Exception
      */
-    function simplePush(?string $key, string $subject, DateTime $runAt, array $payload): ?Job
+    function simplePush(?string $key, string $subject, DateTime $runAt, array $payload, int $maxRetries = DefaultScheduleMaxRetries): ?Job
     {
         $resp = $this->cli->post('jobs', [
-            "json" => $this->generateJob($key,$subject,$runAt,$payload)->toJSON()
+            "json" => $this->generateJob($key,$subject,$runAt,$payload,$maxRetries)->toJSON()
         ]);
         return Job::fromJSON($resp->getBody());
     }
 
-    function generateJob(?string $key, string $subject, DateTime $runAt, array $payload): Job {
-        return new Job($this->queueID, $key, $subject, $runAt, $payload);
+    function generateJob(?string $key, string $subject, DateTime $runAt, array $payload, int $maxRetries = DefaultScheduleMaxRetries): Job {
+        $job = new Job($this->queueID, $key, $subject, $runAt, $payload);
+        $job->max_retries = $maxRetries;
+        return $job;
     }
 
     /**
